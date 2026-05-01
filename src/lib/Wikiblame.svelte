@@ -144,6 +144,24 @@
 		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 	};
 
+	// Group consecutive blocks that share the same revision so we can render
+	// a single revision cell that spans the rows for that group. Use a
+	// function (not a reactive declaration) to avoid runes-mode `$:` rules.
+	const getGroupedBlocks = () => {
+		type Group = { revision: RevisionMeta | null; items: BlockView[] };
+		const groups: Group[] = [];
+		let current: Group | null = null;
+		for (const block of blocks) {
+			const revId = block.revision?.id ?? null;
+			if (!current || (current.revision?.id ?? null) !== revId) {
+				current = { revision: block.revision ?? null, items: [] };
+				groups.push(current);
+			}
+			current.items.push(block);
+		}
+		return groups;
+	};
+
 	onMount(async () => {
 		if (browser) {
 			await ensureSanitizer();
@@ -207,21 +225,23 @@
 				</button>
 			{/if}
 			<section class="blame-grid">
-				{#each blocks as block, i (i)}
+				{#each getGroupedBlocks() as group, gi (gi)}
 					<div
 						class="blame-cell"
-						class:earliest={isEarliestLoadedRevision(block.revision?.id)}
-						title={block.revision
-							? `${block.revision.user} — ${block.revision.comment}`
-							: 'Unknown revision'}
-						style={block.revision ? `--rev-bg: ${getRevisionBg(block.revision.id)}` : undefined}
+						class:earliest={isEarliestLoadedRevision(group.revision?.id)}
+						title={group.revision ? `${group.revision.user} — ${group.revision.comment}` : 'Unknown revision'}
+						style={
+							group.revision
+								? `--rev-bg: ${getRevisionBg(group.revision.id)}; grid-row: span ${group.items.length}`
+								: undefined
+						}
 					>
-						{#if block.revision}
+						{#if group.revision}
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-							<a href={revisionDiffUrl(block.revision)} target="_blank" rel="noreferrer">
-								<time datetime={block.revision.timestamp}>
-									{formatDate(block.revision.timestamp)}
-									{#if isEarliestLoadedRevision(block.revision?.id)}
+							<a href={revisionDiffUrl(group.revision)} target="_blank" rel="noreferrer">
+								<time datetime={group.revision.timestamp}>
+									{formatDate(group.revision.timestamp)}
+									{#if isEarliestLoadedRevision(group.revision?.id)}
 										<span class="earliest-mark" aria-hidden="true">*</span>
 									{/if}
 								</time>
@@ -230,14 +250,17 @@
 							<span class="unknown">unknown</span>
 						{/if}
 					</div>
-					<div
-						class="content-cell"
-						class:earliest={isEarliestLoadedRevision(block.revision?.id)}
-						style={block.revision ? `--rev-bg: ${getRevisionBg(block.revision.id)}` : undefined}
-					>
-						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						<div class="block-html">{@html block.safeHtml}</div>
-					</div>
+
+					{#each group.items as block, i (i)}
+						<div
+							class="content-cell"
+							class:earliest={isEarliestLoadedRevision(block.revision?.id)}
+							style={block.revision ? `--rev-bg: ${getRevisionBg(block.revision.id)}` : undefined}
+						>
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							<div class="block-html">{@html block.safeHtml}</div>
+						</div>
+					{/each}
 				{/each}
 			</section>
 		</section>
