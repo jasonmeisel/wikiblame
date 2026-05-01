@@ -3,6 +3,8 @@ Purpose: Repository-level instructions for Copilot/agents.
 Rules:
 
 - Use Bun for all package manager and runtime actions: `bun install`, `bun dev`, `bun run`, etc. Do not suggest `npm`, `pnpm`, or `yarn` unless the user explicitly requests them.
+- Always use the `createFile` API for writing new files and do not write files via shell commands like `cat`.
+- This app must be fully client-side. Do not use SSR or server-side rendering anywhere in the project.
 - When working with Svelte or SvelteKit, consult and use the Svelte MCP server (mcp_svelte) for documentation, examples, and the `svelte-autofixer` tool where appropriate.
 - Before marking code changes as complete, always run and fix issues from these commands:
   - `bun run check`
