@@ -72,7 +72,7 @@
 
 		try {
 			await ensureSanitizer();
-			const pageBlame = await fetchPageBlame(parsed.title, parsed.lang, 10);
+			const pageBlame = await fetchPageBlame(parsed.title, parsed.lang, 50);
 			title = pageBlame.title;
 			lang = pageBlame.lang;
 			pageUrl = pageBlame.url;

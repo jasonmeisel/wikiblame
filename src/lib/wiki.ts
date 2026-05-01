@@ -107,10 +107,11 @@ const fetchPageHtml = async (title: string, lang: string): Promise<string> => {
 const fetchRevisionMetadata = async (
 	title: string,
 	lang: string,
-	limit = 10
+	limit: number | 'max' = 10
 ): Promise<RevisionMeta[]> => {
 	const encoded = encodeURIComponent(title);
-	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${limit}&rvdir=older`;
+	const rvlimit = limit === 'max' ? 'max' : limit;
+	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${rvlimit}&rvdir=older`;
 	const data = await fetchJson<{ query?: { pages?: Record<string, any> } }>(apiUrl);
 	const pages = data.query?.pages ?? {};
 	const page = Object.values(pages)[0];
@@ -175,7 +176,7 @@ const assignRevisionBlame = (
 export const fetchPageBlame = async (
 	title: string,
 	lang: string,
-	revisionLimit = 8
+	revisionLimit = 50
 ): Promise<PageBlame> => {
 	const normalizedTitle = normalizeTitle(title);
 	const pageUrl = `${buildWikiOrigin(lang)}/wiki/${encodeURIComponent(normalizedTitle)}`;
