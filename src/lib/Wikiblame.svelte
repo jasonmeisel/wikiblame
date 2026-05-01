@@ -39,6 +39,17 @@
 		}
 	};
 
+	const revisionDiffUrl = (revision: RevisionMeta) => {
+		const revisionIndex = revisions.findIndex((item) => item.id === revision.id);
+		if (revisionIndex > 0) {
+			return `https://${lang}.wikipedia.org/w/index.php?title=${encodeURIComponent(
+				title
+			)}&diff=${revision.id}&oldid=${revisions[revisionIndex - 1].id}`;
+		}
+
+		return `https://${lang}.wikipedia.org/w/index.php?oldid=${revision.id}`;
+	};
+
 	const ensureSanitizer = async () => {
 		if (!dompurifyReady && browser) {
 			const DOMPurify = (await import('dompurify')).default;
@@ -145,7 +156,7 @@
 				>
 					{#if block.revision}
 						<a
-							href={`https://${lang}.wikipedia.org/w/index.php?oldid=${block.revision.id}`}
+							href={revisionDiffUrl(block.revision)}
 							target="_blank"
 							rel="noreferrer"
 						>
