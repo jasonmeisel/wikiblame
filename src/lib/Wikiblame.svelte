@@ -47,6 +47,12 @@
 		}
 	};
 
+	// Return true when the given revision id matches the earliest-loaded
+	// revision and we haven't loaded past the current revision limit.
+	const isEarliestLoadedRevision = (revId?: number) => {
+		return revisions.length === revisionLimit && revisions.length > 0 && revId === revisions[0]?.id;
+	};
+
 	const revisionDiffUrl = (revision: RevisionMeta) => {
 		const revisionIndex = revisions.findIndex((item) => item.id === revision.id);
 		if (revisionIndex > 0) {
@@ -189,6 +195,7 @@
 				{#each blocks as block, i (i)}
 					<div
 						class="blame-cell"
+						class:earliest={isEarliestLoadedRevision(block.revision?.id)}
 						title={block.revision
 							? `${block.revision.user} — ${block.revision.comment}`
 							: 'Unknown revision'}
@@ -196,15 +203,18 @@
 						{#if block.revision}
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 							<a href={revisionDiffUrl(block.revision)} target="_blank" rel="noreferrer">
-								<time datetime={block.revision.timestamp}
-									>{formatDate(block.revision.timestamp)}</time
-								>
+								<time datetime={block.revision.timestamp}>
+									{formatDate(block.revision.timestamp)}
+									{#if isEarliestLoadedRevision(block.revision?.id)}
+										<span class="earliest-mark" aria-hidden="true">*</span>
+									{/if}
+								</time>
 							</a>
 						{:else}
 							<span class="unknown">unknown</span>
 						{/if}
 					</div>
-					<div class="content-cell">
+					<div class="content-cell" class:earliest={isEarliestLoadedRevision(block.revision?.id)}>
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						<div class="block-html">{@html block.safeHtml}</div>
 					</div>
@@ -314,6 +324,21 @@
 		background: #fafbff;
 		font-size: 0.88rem;
 		line-height: 1.5;
+	}
+
+	/* Rows that reference the earliest-loaded revision (and where older
+	   revisions may exist) get a subtle grey background to indicate there
+	   may be earlier history not included in this fetch. */
+	.blame-cell.earliest,
+	.content-cell.earliest {
+		background: #f3f4f6;
+	}
+
+	.earliest-mark {
+		margin-left: 0.25rem;
+		color: #6b7280;
+		font-size: 0.85em;
+		vertical-align: super;
 	}
 
 	.blame-cell a {
