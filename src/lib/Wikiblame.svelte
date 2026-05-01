@@ -129,6 +129,21 @@
 		await loadArticle(query);
 	};
 
+	// Compute a light (pastel) background color for a revision based on its
+	// index within the current `revisions` array. Oldest -> red, middle ->
+	// yellow, newest -> green. Returns a CSS color string or empty string.
+	const getRevisionBg = (revisionId?: number) => {
+		if (!revisionId || revisions.length === 0) return '';
+		const idx = revisions.findIndex((r) => r.id === revisionId);
+		if (idx === -1) return '';
+		const total = revisions.length;
+		const t = total <= 1 ? 1 : idx / (total - 1); // 0..1 (oldest..newest)
+		const hue = Math.round(t * 120); // 0 (red) -> 60 (yellow) -> 120 (green)
+		const saturation = 80; // fairly saturated but light overall via L
+		const lightness = 95; // very light pastel for good contrast with black text
+		return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+	};
+
 	onMount(async () => {
 		if (browser) {
 			await ensureSanitizer();
@@ -199,6 +214,7 @@
 						title={block.revision
 							? `${block.revision.user} — ${block.revision.comment}`
 							: 'Unknown revision'}
+						style={block.revision ? `--rev-bg: ${getRevisionBg(block.revision.id)}` : undefined}
 					>
 						{#if block.revision}
 							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -214,7 +230,11 @@
 							<span class="unknown">unknown</span>
 						{/if}
 					</div>
-					<div class="content-cell" class:earliest={isEarliestLoadedRevision(block.revision?.id)}>
+					<div
+						class="content-cell"
+						class:earliest={isEarliestLoadedRevision(block.revision?.id)}
+						style={block.revision ? `--rev-bg: ${getRevisionBg(block.revision.id)}` : undefined}
+					>
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 						<div class="block-html">{@html block.safeHtml}</div>
 					</div>
@@ -321,7 +341,7 @@
 
 	.blame-cell {
 		border-right: 1px solid #e2e8f0;
-		background: #fafbff;
+		background: var(--rev-bg, #fafbff);
 		font-size: 0.88rem;
 		line-height: 1.5;
 	}
@@ -355,7 +375,7 @@
 	}
 
 	.content-cell {
-		background: white;
+		background: var(--rev-bg, white);
 	}
 
 	.block-html :global(img) {
