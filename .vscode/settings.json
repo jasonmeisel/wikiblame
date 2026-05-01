@@ -1,12 +1,28 @@
 {
-    "chat.tools.terminal.autoApprove": {
-        "/^bun run test:e2e$/": {
-            "approve": true,
-            "matchCommandLine": true
-        },
-        "/^bun x playwright test.*/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    }
+	"chat.tools.terminal.autoApprove": {
+		"/^bun run test:e2e$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bun x playwright test.*/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bun run lint$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^prettier --write \\.$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bun run format$/": {
+			"approve": true,
+			"matchCommandLine": true
+		},
+		"/^bun run check ; bun run lint$/": {
+			"approve": true,
+			"matchCommandLine": true
+		}
+	}
 }

@@ -3,4 +3,4 @@
 	import Wikiblame from '$lib/Wikiblame.svelte';
 </script>
 
-<Wikiblame initialQuery={$page.data.title as any} autoLoad={true as any} />
+<Wikiblame initialQuery={$page.data?.title ?? ''} autoLoad={true} />

@@ -56,11 +56,7 @@ export const parseWikipediaTitleInput = (input: string): { title: string; lang: 
 	return { title: normalizeTitle(trimmed), lang: 'en' };
 };
 
-const getHtmlText = (html: string): string => {
-	const parser = new DOMParser();
-	const doc = parser.parseFromString(html, 'text/html');
-	return normalizeText(doc.body.textContent ?? '');
-};
+// helper removed: unused
 
 const parseArticleBlocks = (html: string) => {
 	const parser = new DOMParser();
@@ -112,18 +108,21 @@ const fetchRevisionMetadata = async (
 	const encoded = encodeURIComponent(title);
 	const rvlimit = limit === 'max' ? 'max' : limit;
 	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${rvlimit}&rvdir=older`;
-	const data = await fetchJson<{ query?: { pages?: Record<string, any> } }>(apiUrl);
+	const data = await fetchJson<{ query?: { pages?: Record<string, unknown> } }>(apiUrl);
 	const pages = data.query?.pages ?? {};
-	const page = Object.values(pages)[0];
+	const page = Object.values(pages)[0] as
+		| { revisions?: Array<Record<string, unknown>> }
+		| undefined;
 	const revisions = Array.isArray(page?.revisions) ? page.revisions : [];
-	return revisions
-		.reverse()
-		.map((rev: any) => ({
-			id: rev.revid,
-			timestamp: rev.timestamp,
-			user: rev.user || 'Unknown',
-			comment: rev.comment || ''
-		}));
+	return revisions.reverse().map((rev) => {
+		const r = rev as { revid?: number; timestamp?: string; user?: string; comment?: string };
+		return {
+			id: Number(r.revid ?? 0),
+			timestamp: r.timestamp ?? '',
+			user: r.user || 'Unknown',
+			comment: r.comment || ''
+		};
+	});
 };
 
 const fetchRevisionHtml = async (

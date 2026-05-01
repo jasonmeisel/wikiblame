@@ -8,7 +8,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { fetchPageBlame, parseWikipediaTitleInput, type BlockBlame } from '$lib/wiki';
+	import {
+		fetchPageBlame,
+		parseWikipediaTitleInput,
+		type BlockBlame,
+		type RevisionMeta
+	} from '$lib/wiki';
 
 	const { initialQuery = 'Svelte', autoLoad = false } = $props() as Props;
 
@@ -22,10 +27,13 @@
 	let revisions = $state<Array<{ id: number; timestamp: string; user: string; comment: string }>>(
 		[]
 	);
-	let status = $state<'idle' | 'loading' | 'error' | 'ready'>('idle');
-	let error = $state('');
+	let revisionLimit = $state(50);
+	let loadingMore = $state(false);
 	let dompurifyReady = $state(false);
 	let sanitizeHtml = $state((html: string) => html);
+
+	let status = $state('idle');
+	let error = $state('');
 
 	const formatDate = (value: string) => {
 		try {
@@ -59,6 +67,7 @@
 	};
 
 	const loadArticle = async (value: string) => {
+		revisionLimit = 50;
 		status = 'loading';
 		error = '';
 		blocks = [];
@@ -72,7 +81,7 @@
 
 		try {
 			await ensureSanitizer();
-			const pageBlame = await fetchPageBlame(parsed.title, parsed.lang, 50);
+			const pageBlame = await fetchPageBlame(parsed.title, parsed.lang, revisionLimit);
 			title = pageBlame.title;
 			lang = pageBlame.lang;
 			pageUrl = pageBlame.url;
@@ -85,6 +94,27 @@
 		} catch (err) {
 			status = 'error';
 			error = err instanceof Error ? err.message : 'Failed to load article.';
+		}
+	};
+
+	const loadMoreRevisions = async () => {
+		if (loadingMore || status !== 'ready' || !title) return;
+		loadingMore = true;
+		const nextLimit = revisionLimit + 50;
+
+		try {
+			const pageBlame = await fetchPageBlame(title, lang, nextLimit);
+			revisions = pageBlame.revisions;
+			blocks = pageBlame.blocks.map((block) => ({
+				...block,
+				safeHtml: sanitizeHtml(block.html)
+			}));
+			revisionLimit = nextLimit;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to load more revisions.';
+			status = 'error';
+		} finally {
+			loadingMore = false;
 		}
 	};
 
@@ -132,45 +162,54 @@
 	{#if status === 'ready'}
 		<section class="meta">
 			<p>
-				Viewing <a href={pageUrl} target="_blank" rel="noreferrer noopener">{title}</a> from
+				Viewing
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+				<a href={pageUrl} target="_blank" rel="noreferrer noopener">{title}</a>
+				from
+				<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 				<a href={`https://${lang}.wikipedia.org`} target="_blank" rel="noreferrer noopener">
 					{lang}.wikipedia.org</a
 				>.
 			</p>
-<p>
-			{revisions.length} recent revisions loaded for blame attribution
-			{#if revisions.length}
-				({formatDate(revisions[0].timestamp)} – {formatDate(revisions[revisions.length - 1].timestamp)})
+			<p>
+				{revisions.length} recent revisions loaded for blame attribution
+				{#if revisions.length}
+					({formatDate(revisions[0].timestamp)} – {formatDate(
+						revisions[revisions.length - 1].timestamp
+					)})
+				{/if}
+				.
+			</p>
+			{#if revisions.length === revisionLimit}
+				<button type="button" onclick={loadMoreRevisions} disabled={loadingMore}>
+					{#if loadingMore}Loading next 50 revisions…{:else}Load next 50 revisions{/if}
+				</button>
 			{/if}
-			.
-		</p>
-		</section>
-
-		<section class="blame-grid">
-			{#each blocks as block, index (block.revision?.id != null ? `${block.revision.id}-${index}` : index)}
-				<div
-					class="blame-cell"
-					title={block.revision
-						? `${block.revision.user} — ${block.revision.comment}`
-						: 'Unknown revision'}
-				>
-					{#if block.revision}
-						<a
-							href={revisionDiffUrl(block.revision)}
-							target="_blank"
-							rel="noreferrer"
-						>
-							<time datetime={block.revision.timestamp}>{formatDate(block.revision.timestamp)}</time
-							>
-						</a>
-					{:else}
-						<span class="unknown">unknown</span>
-					{/if}
-				</div>
-				<div class="content-cell">
-					<div class="block-html">{@html block.safeHtml}</div>
-				</div>
-			{/each}
+			<section class="blame-grid">
+				{#each blocks as block, i (i)}
+					<div
+						class="blame-cell"
+						title={block.revision
+							? `${block.revision.user} — ${block.revision.comment}`
+							: 'Unknown revision'}
+					>
+						{#if block.revision}
+							<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+							<a href={revisionDiffUrl(block.revision)} target="_blank" rel="noreferrer">
+								<time datetime={block.revision.timestamp}
+									>{formatDate(block.revision.timestamp)}</time
+								>
+							</a>
+						{:else}
+							<span class="unknown">unknown</span>
+						{/if}
+					</div>
+					<div class="content-cell">
+						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+						<div class="block-html">{@html block.safeHtml}</div>
+					</div>
+				{/each}
+			</section>
 		</section>
 	{/if}
 </main>
