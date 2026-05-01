@@ -126,7 +126,13 @@
 					{lang}.wikipedia.org</a
 				>.
 			</p>
-			<p>{revisions.length} recent revisions loaded for blame attribution.</p>
+<p>
+			{revisions.length} recent revisions loaded for blame attribution
+			{#if revisions.length}
+				({formatDate(revisions[0].timestamp)} – {formatDate(revisions[revisions.length - 1].timestamp)})
+			{/if}
+			.
+		</p>
 		</section>
 
 		<section class="blame-grid">
