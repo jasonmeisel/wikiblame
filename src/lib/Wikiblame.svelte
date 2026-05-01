@@ -19,7 +19,9 @@
 	let lang = $state('en');
 	let pageUrl = $state('');
 	let blocks = $state<BlockView[]>([]);
-	let revisions = $state<Array<{ id: number; timestamp: string; user: string; comment: string }>>([]);
+	let revisions = $state<Array<{ id: number; timestamp: string; user: string; comment: string }>>(
+		[]
+	);
 	let status = $state<'idle' | 'loading' | 'error' | 'ready'>('idle');
 	let error = $state('');
 	let dompurifyReady = $state(false);
@@ -30,7 +32,7 @@
 			return new Intl.DateTimeFormat('en-US', {
 				year: 'numeric',
 				month: 'short',
-				day: '2-digit',
+				day: '2-digit'
 			}).format(new Date(value));
 		} catch {
 			return value;
@@ -66,7 +68,7 @@
 			revisions = pageBlame.revisions;
 			blocks = pageBlame.blocks.map((block) => ({
 				...block,
-				safeHtml: sanitizeHtml(block.html),
+				safeHtml: sanitizeHtml(block.html)
 			}));
 			status = 'ready';
 		} catch (err) {
@@ -93,7 +95,10 @@
 <main class="page">
 	<section class="hero">
 		<h1>Wikiblame</h1>
-		<p>Inspect any Wikipedia article in a blame-style view. Each content block is annotated with the revision that introduced it.</p>
+		<p>
+			Inspect any Wikipedia article in a blame-style view. Each content block is annotated with the
+			revision that introduced it.
+		</p>
 
 		<form class="search" onsubmit={handleSubmit}>
 			<label class="sr-only" for="article-input">Wikipedia title or URL</label>
@@ -117,17 +122,29 @@
 		<section class="meta">
 			<p>
 				Viewing <a href={pageUrl} target="_blank" rel="noreferrer noopener">{title}</a> from
-				<a href={`https://${lang}.wikipedia.org`} target="_blank" rel="noreferrer noopener"> {lang}.wikipedia.org</a>.
+				<a href={`https://${lang}.wikipedia.org`} target="_blank" rel="noreferrer noopener">
+					{lang}.wikipedia.org</a
+				>.
 			</p>
 			<p>{revisions.length} recent revisions loaded for blame attribution.</p>
 		</section>
 
 		<section class="blame-grid">
 			{#each blocks as block, index (block.revision?.id != null ? `${block.revision.id}-${index}` : index)}
-				<div class="blame-cell" title={block.revision ? `${block.revision.user} — ${block.revision.comment}` : 'Unknown revision'}>
+				<div
+					class="blame-cell"
+					title={block.revision
+						? `${block.revision.user} — ${block.revision.comment}`
+						: 'Unknown revision'}
+				>
 					{#if block.revision}
-						<a href={`https://${lang}.wikipedia.org/w/index.php?oldid=${block.revision.id}`} target="_blank" rel="noreferrer">
-							<time datetime={block.revision.timestamp}>{formatDate(block.revision.timestamp)}</time>
+						<a
+							href={`https://${lang}.wikipedia.org/w/index.php?oldid=${block.revision.id}`}
+							target="_blank"
+							rel="noreferrer"
+						>
+							<time datetime={block.revision.timestamp}>{formatDate(block.revision.timestamp)}</time
+							>
 						</a>
 					{:else}
 						<span class="unknown">unknown</span>
@@ -146,7 +163,12 @@
 		max-width: 1100px;
 		margin: 0 auto;
 		padding: 2rem 1.25rem 4rem;
-		font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+		font-family:
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			sans-serif;
 	}
 
 	.hero {

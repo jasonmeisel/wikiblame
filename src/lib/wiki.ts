@@ -79,7 +79,7 @@ const parseArticleBlocks = (html: string) => {
 			return {
 				html: el.outerHTML,
 				text,
-				keep: Boolean(text.length) || hasImage,
+				keep: Boolean(text.length) || hasImage
 			};
 		})
 		.filter((block) => block.keep)
@@ -104,7 +104,11 @@ const fetchPageHtml = async (title: string, lang: string): Promise<string> => {
 	return response.text();
 };
 
-const fetchRevisionMetadata = async (title: string, lang: string, limit = 10): Promise<RevisionMeta[]> => {
+const fetchRevisionMetadata = async (
+	title: string,
+	lang: string,
+	limit = 10
+): Promise<RevisionMeta[]> => {
 	const encoded = encodeURIComponent(title);
 	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${limit}&rvdir=newer`;
 	const data = await fetchJson<{ query?: { pages?: Record<string, any> } }>(apiUrl);
@@ -115,11 +119,15 @@ const fetchRevisionMetadata = async (title: string, lang: string, limit = 10): P
 		id: rev.revid,
 		timestamp: rev.timestamp,
 		user: rev.user || 'Unknown',
-		comment: rev.comment || '',
+		comment: rev.comment || ''
 	}));
 };
 
-const fetchRevisionHtml = async (title: string, lang: string, revisionId: number): Promise<string | null> => {
+const fetchRevisionHtml = async (
+	title: string,
+	lang: string,
+	revisionId: number
+): Promise<string | null> => {
 	const encoded = encodeURIComponent(title);
 	const url = `${buildWikiOrigin(lang)}/api/rest_v1/page/html/${encoded}/${revisionId}`;
 	try {
@@ -131,7 +139,10 @@ const fetchRevisionHtml = async (title: string, lang: string, revisionId: number
 	}
 };
 
-const assignRevisionBlame = (blocks: { html: string; text: string }[], revisionHtmls: Array<{ meta: RevisionMeta; text: string }>): BlockBlame[] => {
+const assignRevisionBlame = (
+	blocks: { html: string; text: string }[],
+	revisionHtmls: Array<{ meta: RevisionMeta; text: string }>
+): BlockBlame[] => {
 	if (revisionHtmls.length === 0) {
 		return blocks.map((block) => ({ html: block.html, text: block.text, revision: null }));
 	}
@@ -140,7 +151,11 @@ const assignRevisionBlame = (blocks: { html: string; text: string }[], revisionH
 
 	return blocks.map((block) => {
 		if (!block.text) {
-			return { html: block.html, text: block.text, revision: revisionHtmls[revisionHtmls.length - 1].meta };
+			return {
+				html: block.html,
+				text: block.text,
+				revision: revisionHtmls[revisionHtmls.length - 1].meta
+			};
 		}
 
 		const blockNorm = normalizeText(block.text);
@@ -161,7 +176,11 @@ const assignRevisionBlame = (blocks: { html: string; text: string }[], revisionH
 	});
 };
 
-export const fetchPageBlame = async (title: string, lang: string, revisionLimit = 8): Promise<PageBlame> => {
+export const fetchPageBlame = async (
+	title: string,
+	lang: string,
+	revisionLimit = 8
+): Promise<PageBlame> => {
 	const normalizedTitle = normalizeTitle(title);
 	const pageUrl = `${buildWikiOrigin(lang)}/wiki/${encodeURIComponent(normalizedTitle)}`;
 	const pageHtml = await fetchPageHtml(normalizedTitle, lang);
@@ -171,7 +190,12 @@ export const fetchPageBlame = async (title: string, lang: string, revisionLimit 
 	const revisionHtmls = await Promise.all(
 		revisionMeta.map(async (meta) => {
 			const html = await fetchRevisionHtml(normalizedTitle, lang, meta.id);
-			return { meta, text: html ? normalizeText(new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '') : '' };
+			return {
+				meta,
+				text: html
+					? normalizeText(new DOMParser().parseFromString(html, 'text/html').body.textContent ?? '')
+					: ''
+			};
 		})
 	);
 
@@ -182,6 +206,6 @@ export const fetchPageBlame = async (title: string, lang: string, revisionLimit 
 		lang,
 		url: pageUrl,
 		blocks: blamedBlocks,
-		revisions: revisionMeta,
+		revisions: revisionMeta
 	};
 };
