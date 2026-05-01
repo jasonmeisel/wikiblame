@@ -110,17 +110,19 @@ const fetchRevisionMetadata = async (
 	limit = 10
 ): Promise<RevisionMeta[]> => {
 	const encoded = encodeURIComponent(title);
-	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${limit}&rvdir=newer`;
+	const apiUrl = `${buildWikiOrigin(lang)}/w/api.php?action=query&format=json&origin=*&prop=revisions&titles=${encoded}&rvprop=ids|timestamp|user|comment&rvlimit=${limit}&rvdir=older`;
 	const data = await fetchJson<{ query?: { pages?: Record<string, any> } }>(apiUrl);
 	const pages = data.query?.pages ?? {};
 	const page = Object.values(pages)[0];
 	const revisions = Array.isArray(page?.revisions) ? page.revisions : [];
-	return revisions.map((rev: any) => ({
-		id: rev.revid,
-		timestamp: rev.timestamp,
-		user: rev.user || 'Unknown',
-		comment: rev.comment || ''
-	}));
+	return revisions
+		.reverse()
+		.map((rev: any) => ({
+			id: rev.revid,
+			timestamp: rev.timestamp,
+			user: rev.user || 'Unknown',
+			comment: rev.comment || ''
+		}));
 };
 
 const fetchRevisionHtml = async (
