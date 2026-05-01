@@ -5,7 +5,17 @@
 			"args": [
 				"-y",
 				"@sveltejs/mcp"
-			]
+			],
+			"type": "stdio"
+		},
+		"microsoft/playwright-mcp": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"@playwright/mcp@latest"
+			],
+			"gallery": "https://api.mcp.github.com"
 		}
-	}
+	},
+	"inputs": []
 }

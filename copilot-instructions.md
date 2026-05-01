@@ -7,6 +7,13 @@ Rules:
 - Always use the `createFile` API for writing new files and do not write files via shell commands like `cat`.
 - This app must be fully client-side. Do not use SSR or server-side rendering anywhere in the project.
 - When working with Svelte or SvelteKit, consult and use the Svelte MCP server (mcp_svelte) for documentation, examples, and the `svelte-autofixer` tool where appropriate.
+ - Use `bun x` instead of `npx` for running one-off CLIs; prefer `bun x` in examples (e.g., `bun x playwright install`).
+ - Use the Playwright MCP server for end-to-end testing: the workspace includes a `microsoft/playwright-mcp` entry in [.vscode/mcp.json](.vscode/mcp.json). Use this MCP server to run browser-based E2E tests and to enable AI-assisted browser automation. See Playwright docs (https://playwright.dev) and the MCP docs (https://playwright.dev/docs/getting-started-mcp) for details.
+   - Install Playwright as a dev dependency with Bun: `bun install -d @playwright/test`.
+  - Install required browsers (if needed) via the Playwright installer; if your environment requires it, run: `bun x playwright install`.
+   - Recommended test layout: `tests/e2e/` or `e2e/`. Add a script in `package.json`: `"test:e2e": "playwright test"` and run it with Bun: `bun run test:e2e`.
+   - When using MCP from VS Code, start `microsoft/playwright-mcp` via the MCP server; use the MCP interface to run, debug, and let agents control browser sessions.
+   - Always run `bun run check` and `bun run lint` after adding or modifying tests; report failures if the agent cannot auto-fix them.
 - Before marking code changes as complete, always run and fix issues from these commands:
   - `bun run check`
   - `bun run lint`
