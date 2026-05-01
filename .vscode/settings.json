@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^bun run test:e2e$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
