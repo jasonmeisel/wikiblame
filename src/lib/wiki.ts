@@ -147,8 +147,6 @@ const assignRevisionBlame = (
 		return blocks.map((block) => ({ html: block.html, text: block.text, revision: null }));
 	}
 
-	const historyText = revisionHtmls.map((entry) => entry.text);
-
 	return blocks.map((block) => {
 		if (!block.text) {
 			return {
@@ -161,14 +159,10 @@ const assignRevisionBlame = (
 		const blockNorm = normalizeText(block.text);
 		let blame = revisionHtmls[revisionHtmls.length - 1].meta;
 
-		for (let i = 0; i < historyText.length; i += 1) {
-			const contains = historyText[i].includes(blockNorm);
-			if (!contains) {
-				blame = revisionHtmls[i + 1]?.meta ?? revisionHtmls[i].meta;
+		for (let i = 0; i < revisionHtmls.length; i += 1) {
+			if (revisionHtmls[i].text.includes(blockNorm)) {
+				blame = revisionHtmls[i].meta;
 				break;
-			}
-			if (i === historyText.length - 1) {
-				blame = revisionHtmls[0].meta;
 			}
 		}
 

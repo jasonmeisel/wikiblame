@@ -3,6 +3,10 @@
         "/^bun run test:e2e$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^bun x playwright test.*/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
