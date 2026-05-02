@@ -4,6 +4,8 @@
 
 Live here: https://whatisjason.com/wikiblame/
 
+![](./screenshot.webp)
+
 Wikiblame is a client-side SvelteKit app that loads any Wikipedia article and renders it in a "blame view" similar to a code editor's git blame.
 
 The result is a normal-looking Wikipedia article with an extra left-hand column. Each line or logical row is annotated with the date it was introduced, the revision link, and hover text showing the editing username and edit summary.
