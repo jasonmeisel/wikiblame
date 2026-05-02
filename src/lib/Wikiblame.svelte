@@ -174,7 +174,10 @@
 
 <main class="page">
 	<section class="hero">
-		<h1>Wikiblame</h1>
+		<div class="hero-header">
+			<h1>Wikiblame</h1>
+			<p class="repo-link"><a href="https://github.com/jasonmeisel/wikiblame">GitHub Repository</a></p>
+		</div>
 		<p>
 			Inspect any Wikipedia article in a blame-style view. Each content block is annotated with the
 			revision that introduced it.
@@ -282,6 +285,34 @@
 
 	.hero {
 		margin-bottom: 1.75rem;
+	}
+
+	.hero-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.repo-link {
+		margin: 0;
+	}
+
+	.repo-link a {
+		color: #1f7aec;
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	@media (max-width: 640px) {
+		.hero-header {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+
+		.repo-link {
+			align-self: flex-end;
+		}
 	}
 
 	h1 {
