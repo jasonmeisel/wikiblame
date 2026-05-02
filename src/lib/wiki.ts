@@ -68,7 +68,17 @@ const parseArticleBlocks = (html: string) => {
 		)
 	);
 
+	const isDuplicateContainer = (el: Element) => {
+		const tag = el.tagName;
+
+		if ((tag === 'UL' || tag === 'OL') && el.querySelector('li')) return true;
+		if (tag === 'DL' && (el.querySelector('dd') || el.querySelector('dt'))) return true;
+
+		return false;
+	};
+
 	return elements
+		.filter((el) => !isDuplicateContainer(el))
 		.map((el) => {
 			const text = normalizeText(el.textContent ?? '');
 			const hasImage = /<img\b/i.test(el.outerHTML);
